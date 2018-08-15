@@ -1,0 +1,19 @@
+1) Access_token cache to disk
+
+2) Handler for disconnect
+
+3) Get liquidity data and find 'good' stocks list.
+
+4) Write main thread:
+    1) Trade simulator based on old data.
+    2) Flow for each trader.
+    3) Spawn and run multiple traders.
+    4) At least one trader end to end.
+    5) Live trade handling.
+
+5) Understand concepts:
+    1) Trailing tick/trailing stop loss.
+    2) Intra-day vs delivery order. Are intra-day order automatically squared off? When?
+    3) square-off
+    4) Diff between normal and StopLoss Orders?
+    5) What are cover orders and One cancels other orders?
