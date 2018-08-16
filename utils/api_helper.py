@@ -22,12 +22,14 @@ class UpstoxHelper(object):
         self.upstoxObj = None
 
     def authenticate(self, apiSecret, redirectUrl, accessCodeProvider):
+        logging.debug("Trying to authenticate with:\napiKey:%s\napiSecret:%s\nredirect:%s" % (
+            self.apiKey, apiSecret, redirectUrl))
         self.session = Session(self.apiKey)
         self.session.set_redirect_uri(redirectUrl)
         self.session.set_api_secret(apiSecret)
         accessCode = accessCodeProvider(self.session.get_login_url())
         assert accessCode, "Authentication failure! Did not receive access code."
-        logging.debug("Received access code: %s" % accessCode)
+        logging.debug("Recevied access code: %s" % accessCode)
         self.session.set_code(accessCode)
         self.accessToken = self.session.retrieve_access_token()
         logging.debug("Received accessToken: %s" % self.accessToken)
@@ -36,6 +38,7 @@ class UpstoxHelper(object):
         if not self.accessToken:
             logging.error("Failed to create upstox object! Please authenticate first.")
             return False
+        logging.debug("Creating upstox object with\napiKey: %s\naccessToken:%s" % (self.apiKey, self.accessToken))
         self.upstoxObj = Upstox(self.apiKey, self.accessToken)
         return True
 

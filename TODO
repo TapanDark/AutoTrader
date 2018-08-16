@@ -4,7 +4,7 @@
 
 3) Get liquidity data and find 'good' stocks list.
 
-4) Write main thread:
+4) Write main thread(Trade manager):
     1) Trade simulator based on old data.
     2) Flow for each trader.
     3) Spawn and run multiple traders.
@@ -17,3 +17,12 @@
     3) square-off
     4) Diff between normal and StopLoss Orders?
     5) What are cover orders and One cancels other orders?
+
+
+INFO GATHERED:
+What is a disclosed quantity order ?
+It is an order in which only a part of the order quantity is disclosed to the market. The next part is automatically released after the previous order quantity is fulfilled and so on till the full order is executed.
+
+or example, if you wish to buy 2000 shares of UTI Bank, you can enter the disclosed quantity as 200. The order quantity sent to the exchange will to be buy 200 shares. After this request is filled the next 200 shares buy request is sent and so on till 2000.
+
+1) Cover orders only get placed when trigger price is reached.
