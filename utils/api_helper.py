@@ -44,7 +44,7 @@ class UpstoxHelper(object):
 
 
 if __name__ == "__main__":
-    from automated_login import automatedLogin
+    from misc import automatedLogin
     import argparse
 
     parser = argparse.ArgumentParser()

@@ -1,7 +1,7 @@
 import logging
 
 from utils.api_helper import UpstoxHelper
-from utils.automated_login import automatedLogin
+from utils.misc import automatedLogin
 from utils.tradeLogger import TradeLogger
 
 apiKey = 'f8qMRApitW2Gkeymmq9kA9vSsp6W5S2U21OXkLk9'
