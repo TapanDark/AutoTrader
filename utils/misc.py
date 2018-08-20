@@ -17,7 +17,7 @@ def generateIncrementingPath(path):
             basePath = path
             extension = ""
         yield basePath + extension
-        for n in itertools.count(start=1, step=1):
+        for n in itertools.count(start=2, step=1):
             yield '%s_%d%s' % (basePath, n, extension)
 
     for newPath in incrementPath(path):
