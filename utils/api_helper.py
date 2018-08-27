@@ -42,6 +42,9 @@ class UpstoxHelper(object):
         self.upstoxObj = Upstox(self.apiKey, self.accessToken)
         return True
 
+    def __getattr__(self, item):
+        return getattr(self.upstoxObj, item)
+
 
 if __name__ == "__main__":
     from misc import automatedLogin
