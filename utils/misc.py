@@ -36,7 +36,10 @@ def mkdir(dirpath):
 
 
 def automatedLogin(url):
-    browser = webdriver.Chrome(executable_path=r"chromedriver.exe")
+    driverBinary = 'chromedriver'
+    if not os.name.endswith("ix"):
+        driverBinary += '.exe'
+    browser = webdriver.Chrome(executable_path=driverBinary)
     browser.get(url)
     with open(os.path.join(os.path.dirname(__file__), 'data', 'passdata.txt'), 'r') as fp:
         data = json.loads(fp.read())
