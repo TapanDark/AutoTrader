@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from utils.api_helper import UpstoxHelper, API_KEY, API_SECRET, REDIRECT_URL
+
 from upstox_api.api import LiveFeedType
 from utils.misc import automatedLogin
 from collections import defaultdict
@@ -10,20 +10,13 @@ class BaseMarket(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, contracts=['NSE_EQ']):
+    def __init__(self, upstoxObj, contracts=['NSE_EQ']):
         logging.debug("init %s" % self.__name__)
         self._APIConnect()
         self._registerCallBacks()
         self.masterContracts = self.upstoxApi.get_master_contract('NSE_EQ')
         self._subscribed = []
         self._quoteUpdateCallbacks = defaultdict(dict)
-
-    def _APIConnect(self):
-        logging.debug("Connecting to upstox api")
-        self.upstoxApi = UpstoxHelper(API_KEY)
-        self.upstoxApi.authenticate(API_SECRET, REDIRECT_URL, automatedLogin)
-        self.upstoxApi.connect()
-        logging.debug("Connection to api successful")
 
     def _registerCallBacks(self):
         pass

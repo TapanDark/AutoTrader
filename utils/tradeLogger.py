@@ -40,10 +40,12 @@ class TradeLogger(object):
         cls.logger.addHandler(streamHandle)
 
     @classmethod
-    def setFileLoggers(cls, logDir, simulation):
-        now = datetime.datetime.now()
-        logDir = generateIncrementingPath(os.path.join(logDir, str(now.year), now.strftime("%b"), str(now.day),
-                                                       "%s" % ('simulation' if simulation else 'real'), 'iter'))
+    def setFileLoggers(cls, logDir, simulation, logTime=None):
+        if not logTime:
+            logTime = datetime.datetime.now()
+        logDir = generateIncrementingPath(
+            os.path.join(logDir, str(logTime.year), logTime.strftime("%b"), str(logTime.day),
+                         "%s" % ('simulation' if simulation else 'real'), 'iter'))
         if not os.path.isabs(logDir):
             logDir = os.path.join(os.getcwd(), logDir)
         mkdir(logDir)
@@ -67,11 +69,11 @@ class TradeLogger(object):
 
     @classmethod
     def basicConfig(cls, logDir='TraderLogs', logLevel=logging.DEBUG if sys.flags.debug else logging.INFO,
-                    simulation=True):
+                    simulation=True, logTime=None):
         logging.addLevelName(TRADE_LEVEL, "TRADE")
         logging.Logger.trade = trade
         logging.trade = module_trade
         cls.logger.setLevel(logging.DEBUG)
         if len(cls.logger.handlers) == 0:
             cls.setStreamLogger(sys.stdout, logLevel=logLevel)
-            cls.setFileLoggers(logDir, simulation)
+            cls.setFileLoggers(logDir, simulation, logTime=logTime)
