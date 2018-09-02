@@ -1,9 +1,8 @@
 from upstox_api.api import *
+import base64
 import logging
 
 # DEFAULTS
-API_KEY = "f8qMRApitW2Gkeymmq9kA9vSsp6W5S2U21OXkLk9"
-API_SECRET = "zhkf8kk412"
 REDIRECT_URL = 'https://upstox.com/'
 
 
@@ -20,6 +19,24 @@ class UpstoxHelper(object):
         self.accessToken = accessToken
         self.session = None
         self.upstoxObj = None
+
+    @staticmethod
+    def getApiKey():
+        with open(os.path.join(os.path.dirname(__file__), 'data', 'api_keys.txt'), 'r') as fp:
+            data = json.loads(fp.read())
+        return base64.b64decode(data['apiKey'])
+
+    @staticmethod
+    def getApiSecret():
+        with open(os.path.join(os.path.dirname(__file__), 'data', 'api_keys.txt'), 'r') as fp:
+            data = json.loads(fp.read())
+        return base64.b64decode(data['apiSecret'])
+
+    @staticmethod
+    def getRedirectUrl():
+        with open(os.path.join(os.path.dirname(__file__), 'data', 'api_keys.txt'), 'r') as fp:
+            data = json.loads(fp.read())
+        return base64.b64decode(data['redirect'])
 
     def authenticate(self, apiSecret, redirectUrl, accessCodeProvider):
         logging.debug("Trying to authenticate with:\napiKey:%s\napiSecret:%s\nredirect:%s" % (
@@ -51,15 +68,18 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--apiKey", default=API_KEY, type=str, help="Api key for upstox app")
-    parser.add_argument("--apiSecret", default=API_SECRET, type=str, help="Api secret for upstox app")
-    parser.add_argument("--redirect", default=REDIRECT_URL, type=str, help="URL to authentication service.")
+    parser.add_argument("--apiKey", default=None, type=str, help="Api key for upstox app")
+    parser.add_argument("--apiSecret", default=None, type=str, help="Api secret for upstox app")
+    parser.add_argument("--redirect", default=None, type=str, help="URL to authentication service.")
     parser.add_argument("--accessToken", default=None, type=str, help="Access token if authorized already.")
     arguments = parser.parse_args()
     import pdb
 
     pdb.set_trace()
-    uHelper = UpstoxHelper(arguments.apiKey, arguments.accessToken)
+    apiKey = arguments.apiKey if arguments.apiKey else UpstoxHelper.getApiKey()
+    apiSecret = arguments.apiSecret if arguments.apiSecret else UpstoxHelper.getApiSecret()
+    redirect = arguments.redirect if arguments.redirect else UpstoxHelper.getRedirectUrl()
+    uHelper = UpstoxHelper(apiKey, arguments.accessToken)
     if not arguments.accessToken:
-        uHelper.authenticate(arguments.apiSecret, arguments.redirect, automatedLogin)
+        uHelper.authenticate(apiSecret, redirect, automatedLogin)
     uHelper.connect()
