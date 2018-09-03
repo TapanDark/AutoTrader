@@ -1,25 +1,31 @@
-from abc import ABCMeta, abstractmethod
+import logging
+import time
+import datetime
 
-from upstox_api.api import LiveFeedType
-from utils.misc import automatedLogin
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
+from upstox_api.api import LiveFeedType
 from utils.api_helper import UpstoxHelper
 from utils.loom import Loom
-import logging
+from utils.misc import automatedLogin
+
+MARKET_START = datetime.time(9, 15)
+MARKET_END = datetime.time(15, 30)
 
 
 class BaseMarket(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def __init__(self, upstoxObj, contracts=['NSE_EQ']):
+    def __init__(self, contracts=['NSE_EQ']):
         logging.debug("init %s" % self.__name__)
+        self.contracts = contracts
         self.upstoxApi = None
         self._APIConnect()
-        self.masterContracts = self.upstoxApi.get_master_contract('NSE_EQ')
         self._registerCallBacks()
         self._subscribed = []
-        self._quoteUpdateCallbacks = defaultdict(dict)
+        self._quoteUpdateCallbacks = defaultdict(list)
+        self.traders = {}
 
     def _registerCallBacks(self):
         self.upstoxApi.set_on_quote_update(self._quoteUpdate)
@@ -30,12 +36,15 @@ class BaseMarket(object):
         self.upstoxApi = UpstoxHelper(UpstoxHelper.getApiKey())
         self.upstoxApi.authenticate(UpstoxHelper.getApiSecret(), UpstoxHelper.getRedirectUrl(), automatedLogin)
         self.upstoxApi.connect()
+        for contract in self.contracts:
+            self.masterContracts = self.upstoxApi.get_master_contract(contract)
 
     @abstractmethod
     def _quoteUpdate(self, quote_object):
         logging.debug("Received quote update. RAW:\n%s" % quote_object)
         # update all traders who registered for this quote
-        for (trader, callback) in self._quoteUpdateCallbacks[quote_object["instrument"].symbol]:
+        for item in self._quoteUpdateCallbacks[quote_object["instrument"].symbol]:
+            trader, callback = item
             logging.debug("Sending quote to TRADER:%s" % trader)
             Loom.pushTask(callback, quote_object)
         # TODO : cache quote for providing day history
@@ -66,8 +75,33 @@ class BaseMarket(object):
         if instrument not in self._subscribed:
             logging.debug("Subscribing instrument %s" % instrument)
             self.upstoxApi.subscribe(instrument, LiveFeedType.Full)
-        self._quoteUpdateCallbacks[instrument.symbol] = (traderName, callback)
+            self._subscribed.append(instrument)
+        self._quoteUpdateCallbacks[instrument.symbol].append((traderName, callback))
         logging.debug("Trader %s registerted for %s." % (traderName, instrument.symbol))
 
-    # TODO: register interesting stocks for all traders, and dispatch events accordingly
+    def addTrader(self, traderObj, budget):
+        logging.info("Registering trader in %s market for margin : %s" % (self.__name__, budget))
+        traderID = id(traderObj)
+        if traderID in self.traders:
+            logging.warning("Trader %s already registered" % (traderObj.__name__))
+        self.traders[traderID] = {
+            "traderObj": traderObj,
+            "margin": budget
+        }
+        traderObj.initialize(self)
+
+    def _isMarketOpen(self):
+        now = datetime.datetime.now()
+        if not now.weekday() > 5:
+            return False
+        if now.time() > MARKET_START and now.time() < MARKET_END:
+            return True
+        return False
+
+    def startDay(self):
+        logging.info("Starting trading day")
+        while self._isMarketOpen():
+            time.sleep(60)
+        logging.info("Market has closed. Trading day over")
+
     # TODO: Method stubs for all supported events, and methods for traders to register for them.
