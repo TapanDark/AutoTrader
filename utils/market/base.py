@@ -4,6 +4,7 @@ from upstox_api.api import LiveFeedType
 from utils.misc import automatedLogin
 from collections import defaultdict
 from utils.api_helper import UpstoxHelper
+from utils.loom import Loom
 import logging
 
 
@@ -36,16 +37,18 @@ class BaseMarket(object):
         # update all traders who registered for this quote
         for (trader, callback) in self._quoteUpdateCallbacks[quote_object["instrument"].symbol]:
             logging.debug("Sending quote to TRADER:%s" % trader)
-            callback(quote_object)
-            # TODO : cache quote for providing day history
+            Loom.pushTask(callback, quote_object)
+        # TODO : cache quote for providing day history
 
     def _tradeUpdate(self, message):
         # TODO: This method is not complete
         logging.debug("Received trade update. RAW:\n%s" % message)
+        # Loom.queueTask(callback,message)
 
     def _orderUpdate(self, message):
         # TODO: This method is not complete
         logging.debug("Received order update. RAW:\n%s" % message)
+        # Loom.queueTask(callback,message)
 
     @abstractmethod
     def getInstrument(self, symbol, market='NSQ_EQ'):
