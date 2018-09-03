@@ -3,11 +3,9 @@ import argparse
 import datetime
 
 from utils.misc import automatedLogin
-from utils.api_helper import UpstoxHelper, API_KEY, API_SECRET, REDIRECT_URL
+from utils.api_helper import UpstoxHelper
 from utils.tradeLogger import TradeLogger
-
-apiKey = 'f8qMRApitW2Gkeymmq9kA9vSsp6W5S2U21OXkLk9'
-accessToken = '7c0657e8ec714fe0bb7fbebbb1354b2b4f992857'
+from utils.loom import Loom
 
 
 def storeCredentials():
@@ -20,8 +18,8 @@ def loadCredentials():
 
 def getUpstoxHelper():
     logging.debug("Connecting to upstox api")
-    upstoxApi = UpstoxHelper(API_KEY)
-    upstoxApi.authenticate(API_SECRET, REDIRECT_URL, automatedLogin)
+    upstoxApi = UpstoxHelper(UpstoxHelper.getApiKey())
+    upstoxApi.authenticate(UpstoxHelper.getApiSecret(), UpstoxHelper.getRedirectUrl(), automatedLogin)
     upstoxApi.connect()
     logging.debug("Connection to api successful")
     return upstoxApi
@@ -42,6 +40,6 @@ if __name__ == "__main__":
         parseArguments(parser)
         logging.info("Creating upstox helper object")
         upstoxHelper = getUpstoxHelper()
-
+        Loom.waitForLoom()  # call in cleanup
     except Exception as e:
         logging.exception("Exception ocurred!")

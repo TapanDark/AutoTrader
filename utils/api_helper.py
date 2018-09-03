@@ -2,9 +2,6 @@ from upstox_api.api import *
 import base64
 import logging
 
-# DEFAULTS
-REDIRECT_URL = 'https://upstox.com/'
-
 
 class UpstoxHelper(object):
 
@@ -59,7 +56,12 @@ class UpstoxHelper(object):
         self.upstoxObj = Upstox(self.apiKey, self.accessToken)
         return True
 
+    def getInstrument(self, symbol, exchange='NSE_EQ'):
+        self.get_instrument_by_symbol(exchange, symbol)
+
     def __getattr__(self, item):
+        if not self.upstoxObj:
+            raise AttributeError
         return getattr(self.upstoxObj, item)
 
 
@@ -73,9 +75,6 @@ if __name__ == "__main__":
     parser.add_argument("--redirect", default=None, type=str, help="URL to authentication service.")
     parser.add_argument("--accessToken", default=None, type=str, help="Access token if authorized already.")
     arguments = parser.parse_args()
-    import pdb
-
-    pdb.set_trace()
     apiKey = arguments.apiKey if arguments.apiKey else UpstoxHelper.getApiKey()
     apiSecret = arguments.apiSecret if arguments.apiSecret else UpstoxHelper.getApiSecret()
     redirect = arguments.redirect if arguments.redirect else UpstoxHelper.getRedirectUrl()
@@ -83,3 +82,7 @@ if __name__ == "__main__":
     if not arguments.accessToken:
         uHelper.authenticate(apiSecret, redirect, automatedLogin)
     uHelper.connect()
+    import pdb
+
+    pdb.set_trace()
+    logging.info("Done")
