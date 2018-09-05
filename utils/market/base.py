@@ -34,7 +34,7 @@ class BaseMarket(object):
 
     def _APIConnect(self):
         self.upstoxApi = UpstoxHelper(UpstoxHelper.getApiKey())
-        if UpstoxHelper.accessToken:  # TODO: WAR, fix this. One connect call should handle all
+        if getattr(UpstoxHelper, "accessToken", None):  # TODO: WAR, fix this. One connect call should handle all
             self.upstoxApi.accessToken = UpstoxHelper.accessToken
         else:
             self.upstoxApi.authenticate(UpstoxHelper.getApiSecret(), UpstoxHelper.getRedirectUrl(), automatedLogin)
@@ -73,10 +73,14 @@ class BaseMarket(object):
         logging.debug("Registering TRADER:%s for SYMBOL:%s" % (traderName, instrument))
         if instrument not in self._subscribed:
             logging.debug("Subscribing instrument %s" % str(instrument))
-            self.upstoxApi.subscribe(instrument, LiveFeedType.Full)
+            response = self.upstoxApi.subscribe(instrument, LiveFeedType.LTP)
+            if not response["success"]:
+                logging.error("Failed to subscribe to %s" % instrument)
+                return False
             self._subscribed.append(instrument)
         self._quoteUpdateCallbacks[instrument.symbol].append((traderName, callback))
         logging.debug("Trader %s registerted for %s." % (traderName, instrument.symbol))
+        return True
 
     def addTrader(self, traderObj, budget):
         logging.info(
@@ -100,6 +104,7 @@ class BaseMarket(object):
 
     def startDay(self):
         logging.info("Starting trading day")
+        self.upstoxApi.start_websocket(True)
         while self._isMarketOpen():
             time.sleep(60)
         logging.info("Market has closed. Trading day over")
