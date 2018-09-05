@@ -5,9 +5,11 @@ from abc import ABCMeta, abstractmethod
 class BaseTrader(object):
     __metaclass__ = ABCMeta
 
+    @abstractmethod
     def __init__(self):
         self.market = None
-        self.name = "BASE_TRADER"
+        if not getattr(self, "name", None):
+            self.name = "BASE_TRADER"
 
     @abstractmethod
     def initialize(self, market):
@@ -18,7 +20,7 @@ class BaseTrader(object):
 
     @abstractmethod
     def _getInterestedStocks(self):
-        return self.market.getInstrument("TATASTEEL")
+        return [self.market.getInstrument("TATASTEEL")]
 
     @abstractmethod
     def stockUpdate(self, message):

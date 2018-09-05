@@ -18,7 +18,7 @@ class BaseMarket(object):
 
     @abstractmethod
     def __init__(self, contracts=['NSE_EQ']):
-        logging.debug("init %s" % self.__name__)
+        logging.debug("init %s" % self.__class__.__name__)
         self.contracts = contracts
         self.upstoxApi = None
         self._APIConnect()
@@ -34,12 +34,14 @@ class BaseMarket(object):
 
     def _APIConnect(self):
         self.upstoxApi = UpstoxHelper(UpstoxHelper.getApiKey())
-        self.upstoxApi.authenticate(UpstoxHelper.getApiSecret(), UpstoxHelper.getRedirectUrl(), automatedLogin)
+        if UpstoxHelper.accessToken:  # TODO: WAR, fix this. One connect call should handle all
+            self.upstoxApi.accessToken = UpstoxHelper.accessToken
+        else:
+            self.upstoxApi.authenticate(UpstoxHelper.getApiSecret(), UpstoxHelper.getRedirectUrl(), automatedLogin)
         self.upstoxApi.connect()
         for contract in self.contracts:
             self.masterContracts = self.upstoxApi.get_master_contract(contract)
 
-    @abstractmethod
     def _quoteUpdate(self, quote_object):
         logging.debug("Received quote update. RAW:\n%s" % quote_object)
         # update all traders who registered for this quote
@@ -59,31 +61,29 @@ class BaseMarket(object):
         logging.debug("Received order update. RAW:\n%s" % message)
         # Loom.queueTask(callback,message)
 
-    @abstractmethod
-    def getInstrument(self, symbol, market='NSQ_EQ'):
-        self.upstoxApi.getInstrument(symbol, market)
+    def getInstrument(self, symbol, market='NSE_EQ'):
+        return self.upstoxApi.getInstrument(symbol, market)
 
-    @abstractmethod
     def getLastValue(self, instrument, type='full'):
         self.upstoxApi.get_live_feed(instrument, type)
 
-    @abstractmethod
     def registerQuoteUpdate(self, traderName, instrument, callback):
         # type = LiveFeedType.Full if feedType.lower() == 'full' else LiveFeedType.LTP if feedType.lower() == 'ltp' else None
         # assert type, "feedType must be 'full' or 'ltp'. Received %s" % feedType
         logging.debug("Registering TRADER:%s for SYMBOL:%s" % (traderName, instrument))
         if instrument not in self._subscribed:
-            logging.debug("Subscribing instrument %s" % instrument)
+            logging.debug("Subscribing instrument %s" % str(instrument))
             self.upstoxApi.subscribe(instrument, LiveFeedType.Full)
             self._subscribed.append(instrument)
         self._quoteUpdateCallbacks[instrument.symbol].append((traderName, callback))
         logging.debug("Trader %s registerted for %s." % (traderName, instrument.symbol))
 
     def addTrader(self, traderObj, budget):
-        logging.info("Registering trader in %s market for margin : %s" % (self.__name__, budget))
+        logging.info(
+            "Registering trader:%s in market:%s for margin : %s" % (traderObj.name, self.__class__.__name__, budget))
         traderID = id(traderObj)
         if traderID in self.traders:
-            logging.warning("Trader %s already registered" % (traderObj.__name__))
+            logging.warning("Trader %s already registered" % (traderObj.__class__.__name__))
         self.traders[traderID] = {
             "traderObj": traderObj,
             "margin": budget
@@ -103,5 +103,3 @@ class BaseMarket(object):
         while self._isMarketOpen():
             time.sleep(60)
         logging.info("Market has closed. Trading day over")
-
-    # TODO: Method stubs for all supported events, and methods for traders to register for them.

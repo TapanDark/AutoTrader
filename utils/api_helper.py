@@ -57,17 +57,21 @@ class UpstoxHelper(object):
         return True
 
     def getInstrument(self, symbol, exchange='NSE_EQ'):
-        self.get_instrument_by_symbol(exchange, symbol)
+        return self.get_instrument_by_symbol(exchange, symbol)
 
     def __getattr__(self, item):
         if not self.upstoxObj:
+            logging.error("Upstox object not created! Please call authenticate and connect methods.")
             raise AttributeError
         return getattr(self.upstoxObj, item)
 
 
 if __name__ == "__main__":
-    from misc import automatedLogin
+    from utils.misc import automatedLogin
     import argparse
+    from utils.tradeLogger import TradeLogger
+
+    TradeLogger.basicConfig()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--apiKey", default=None, type=str, help="Api key for upstox app")
@@ -85,4 +89,15 @@ if __name__ == "__main__":
     import pdb
 
     pdb.set_trace()
+    uHelper.get_master_contract('NSE_EQ')
+
+
+    def event_handler_quote_update(message):
+        logging.info("Received Quote update: %s" % str(message))
+
+
+    uHelper.set_on_quote_update(event_handler_quote_update)
+    uHelper.subscribe(uHelper.get_instrument_by_symbol('NSE_EQ', 'TATASTEEL'), LiveFeedType.Full)
+    uHelper.start_websocket(True)
+
     logging.info("Done")

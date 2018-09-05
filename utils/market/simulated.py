@@ -2,4 +2,5 @@ from base import BaseMarket
 
 
 class SimMarket(BaseMarket):
-    pass
+    def __init__(self):
+        super(SimMarket, self).__init__()
