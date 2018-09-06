@@ -1,10 +1,11 @@
+import datetime
 import logging
 import time
-import datetime
-
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
+
 from upstox_api.api import LiveFeedType
+
 from utils.api_helper import UpstoxHelper
 from utils.loom import Loom
 from utils.misc import automatedLogin
@@ -67,13 +68,13 @@ class BaseMarket(object):
     def getLastValue(self, instrument, type='full'):
         self.upstoxApi.get_live_feed(instrument, type)
 
-    def registerQuoteUpdate(self, traderName, instrument, callback):
+    def registerQuoteUpdate(self, traderName, instrument, callback, type=LiveFeedType.LTP):
         # type = LiveFeedType.Full if feedType.lower() == 'full' else LiveFeedType.LTP if feedType.lower() == 'ltp' else None
         # assert type, "feedType must be 'full' or 'ltp'. Received %s" % feedType
         logging.debug("Registering TRADER:%s for SYMBOL:%s" % (traderName, instrument))
         if instrument not in self._subscribed:
             logging.debug("Subscribing instrument %s" % str(instrument))
-            response = self.upstoxApi.subscribe(instrument, LiveFeedType.LTP)
+            response = self.upstoxApi.subscribe(instrument, type)
             if not response["success"]:
                 logging.error("Failed to subscribe to %s" % instrument)
                 return False

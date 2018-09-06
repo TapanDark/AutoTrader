@@ -48,7 +48,8 @@ if __name__ == "__main__":
             UpstoxHelper.accessToken = arguments.accessToken
         market = SimMarket()
         market.addTrader(DummyTrader(), 50000)
-        market.startDay()
+        market.setSimDuration(datetime.datetime(2018, 9, 07), 1)
+        market.runSimulation()
         Loom.waitForLoom()  # call in cleanup
     except Exception as e:
         logging.exception("Exception ocurred!")
