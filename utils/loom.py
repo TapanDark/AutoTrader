@@ -8,8 +8,8 @@ class Loom(object):
     """
         A utility to manage threads
     """
-    _queuedTasks = defaultdict(lambda: tuple([Queue.Queue(), threading.Event()]))
-    _dropTasks = defaultdict(lambda: tuple([Queue.Queue(maxsize=1), threading.Event()]))
+    _queuedTasks = defaultdict(lambda: defaultdict(lambda: tuple([Queue.Queue(), threading.Event()])))
+    _dropTasks = defaultdict(lambda: defaultdict(lambda: tuple([Queue.Queue(maxsize=1), threading.Event()])))
 
     @classmethod
     def _needle(cls, taskTuple):
@@ -31,37 +31,39 @@ class Loom(object):
     @classmethod
     def queueTask(cls, func, *args, **kwargs):
         funcId = id(func)
+        group = kwargs.get('_taskGroup', 'default')
         try:
-            cls._queuedTasks[funcId][0].put((func, args, kwargs))
+            cls._queuedTasks[group][funcId][0].put((func, args, kwargs))
         except Queue.Full:
             logging.error("Memory Overflow!!" % func.__name__)
             return False
         logging.debug("Queued task %s" % func.__name__)
-        if not cls._queuedTasks[funcId][1].is_set():
-            cls._queuedTasks[funcId][1].set()
-            cls._startLoom(cls._queuedTasks[funcId])  # start processor
+        if not cls._queuedTasks[group][funcId][1].is_set():
+            cls._queuedTasks[group][funcId][1].set()
+            cls._startLoom(cls._queuedTasks[group][funcId])  # start processor
         return True
 
     @classmethod
     def pushTask(cls, func, *args, **kwargs):
         funcId = id(func)
-        if cls._dropTasks[funcId][1].is_set():
-            logging.debug("Last call to %s has not exited. Skipping update" % func.__name__)
+        group = kwargs.get('_taskGroup', 'default')
+        if cls._dropTasks[group][funcId][1].is_set():
+            logging.debug("Last call to %s:%s has not exited. Skipping update" % (group, func.__name__))
             return True
         else:
-            cls._dropTasks[funcId][0].put((func, args, kwargs))
-            cls._dropTasks[funcId][1].set()
-            cls._startLoom(cls._dropTasks[funcId])  # start processor
+            cls._dropTasks[group][funcId][0].put((func, args, kwargs))
+            cls._dropTasks[group][funcId][1].set()
+            cls._startLoom(cls._dropTasks[group][funcId])  # start processor
         return True
 
     @classmethod
-    def waitForLoom(cls):
-        logging.info("Waiting for loom to finish weaving all threads.")
-        for task in cls._queuedTasks:
-            queue, runningEvent = cls._queuedTasks[task]
+    def waitForLoom(cls, group='default'):
+        logging.info("Waiting for loom to finish weaving all threads of group: %s" % group)
+        for task in cls._queuedTasks[group]:
+            queue, runningEvent = cls._queuedTasks[group][task]
             queue.join()
-        for task in cls._dropTasks:
-            queue, runningEvent = cls._queuedTasks[task]
+        for task in cls._dropTasks[group]:
+            queue, runningEvent = cls._queuedTasks[group][task]
             queue.join()
 
 
