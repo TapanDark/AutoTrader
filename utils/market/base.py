@@ -109,3 +109,5 @@ class BaseMarket(object):
         while self._isMarketOpen():
             time.sleep(60)
         logging.info("Market has closed. Trading day over")
+        for traderId in self.traders:
+            self.traders[traderId]['traderObj'].close()

@@ -20,11 +20,14 @@ class BaseTrader(object):
 
     @abstractmethod
     def _getInterestedStocks(self):
-        return [self.market.getInstrument("TATASTEEL"), self.market.getInstrument("RELIANCE"),
-                self.market.getInstrument("RELIANCE"), self.market.getInstrument("UNITECH"),
-                self.market.getInstrument("ACC")]
+        return [self.market.getInstrument("ACC"),
+        self.market.getInstrument("RELIANCE"), self.market.getInstrument("UNITECH"),
+        self.market.getInstrument("TATASTEEL")]
 
     @abstractmethod
     def stockUpdate(self, message):
         logging.info("Trader %s has received quote update for stock %s" % (self.name, message['instrument'].symbol))
         logging.info("Stock info: %s" % message)
+
+    def close(self):
+        pass

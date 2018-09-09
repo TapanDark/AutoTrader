@@ -15,6 +15,7 @@ class SimMarket(BaseMarket):
         self.counter = 0
         self.stockData = {}
         self._dummyMessages = {}
+        self.jitterCount = 2  # number of random data points to insert into each minute of data.
 
     def _isMarketOpen(self):
         if self.counter < 1:
@@ -85,7 +86,7 @@ class SimMarket(BaseMarket):
                 message['ltp'] = stockData[symbol][minute]['low']
                 midMessages.append(message)
 
-                for i in range(0, 4):
+                for i in range(0, self.jitterCount):
                     message = copy.deepcopy(self._dummyMessages[symbol])
                     message['ltp'] = round(
                         random.uniform(stockData[symbol][minute]['low'], stockData[symbol][minute]['high']), 2)
@@ -103,6 +104,8 @@ class SimMarket(BaseMarket):
             for message in closeMessages:
                 message['timestamp'] = baseTimeStamp + 60000
                 self._quoteUpdate(message)
+        for traderId in self.traders:
+            self.traders[traderId]['traderObj'].close()
         Loom.waitForLoom()
 
     # TODO:
