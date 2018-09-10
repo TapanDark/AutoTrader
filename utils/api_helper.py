@@ -99,5 +99,4 @@ if __name__ == "__main__":
     uHelper.set_on_quote_update(event_handler_quote_update)
     uHelper.subscribe(uHelper.get_instrument_by_symbol('NSE_EQ', 'TATASTEEL'), LiveFeedType.Full)
     uHelper.start_websocket(True)
-
     logging.info("Done")

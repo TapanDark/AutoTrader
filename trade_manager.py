@@ -35,7 +35,6 @@ def parseArguments(parser):
     logging.debug("Arguments:%s" % arguments)
     return arguments
 
-
 if __name__ == "__main__":
     try:
         TradeLogger.basicConfig()
@@ -46,10 +45,13 @@ if __name__ == "__main__":
         # upstoxHelper = getUpstoxHelper()
         if arguments.accessToken:
             UpstoxHelper.accessToken = arguments.accessToken
-        market = SimMarket()
-        market.addTrader(DummyTrader(), 50000)
-        market.setSimDuration(datetime.datetime(2018, 9, 07), 1)
-        market.runSimulation()
-        Loom.waitForLoom()  # call in cleanup
+        market = RealMarket()
+        import pdb
+
+        pdb.set_trace()
+        # market.addTrader(DummyTrader(), 50000)
+        # market.setSimDuration(datetime.datetime(2018, 9, 07), 1)
+        # market.runSimulation()
+        # Loom.waitForLoom()  # call in cleanup
     except Exception as e:
         logging.exception("Exception ocurred!")

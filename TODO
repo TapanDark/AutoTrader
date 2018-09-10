@@ -26,3 +26,34 @@ It is an order in which only a part of the order quantity is disclosed to the ma
 or example, if you wish to buy 2000 shares of UTI Bank, you can enter the disclosed quantity as 200. The order quantity sent to the exchange will to be buy 200 shares. After this request is filled the next 200 shares buy request is sent and so on till 2000.
 
 1) Cover orders only get placed when trigger price is reached.
+
+
+
+ORDER DATA:
+[09/10/2018 23:35:25] [CRITICAL] Received order update. RAW:
+{'time_in_micro': u'0', 'disclosed_quantity': 0, 'duration': None, 'message': u'', 'order_type': 'L', 'trigger_price': 0.0,
+'instrument': Instrument(exchange=u'NSE_EQ', token=3499, parent_token=None, symbol=u'tatasteel', name=u'TATA STEEL LIMITED',
+ closing_price=619.15, expiry=None, strike_price=None, tick_size=5.0, lot_size=1, instrument_type=u'EQUITY', isin=u'INE081A01012'),
+  'is_amo': False, 'price': 1.0, 'status': u'put order req received', 'product': 'D', 'exchange_order_id': u'', 'exchange': u'NSE_EQ',
+  'order_id': u'180910000207409', 'symbol': u'TATASTEEL', 'parent_order_id': u'NA', 'exchange_time': u'', 'average_price': 0.0,
+  'order_request_id': u'1', 'transaction_type': 'B', 'token': 3499, 'traded_quantity': 0, 'quantity': 1}
+[09/10/2018 23:35:25] [CRITICAL] Received order update. RAW:
+{'time_in_micro': u'1536602725763606', 'disclosed_quantity': 0, 'duration': None, 'message': u'', 'order_type': 'L', 'trigger_price': 0.0,
+'instrument': Instrument(exchange=u'NSE_EQ', token=3499, parent_token=None, symbol=u'tatasteel', name=u'TATA STEEL LIMITED',
+closing_price=619.15, expiry=None, strike_price=None, tick_size=5.0, lot_size=1, instrument_type=u'EQUITY', isin=u'INE081A01012'),
+ 'is_amo': False, 'price': 1.0, 'status': u'put order req received', 'product': 'D', 'exchange_order_id': u'', 'exchange': u'NSE_EQ',
+ 'order_id': u'180910000207409', 'symbol': u'TATASTEEL', 'parent_order_id': u'NA', 'exchange_time': u'', 'average_price': 0.0,
+ 'order_request_id': u'1', 'transaction_type': 'B', 'token': 3499, 'traded_quantity': 0, 'quantity': 1}
+[09/10/2018 23:35:25] [CRITICAL] Received order update. RAW:
+{'time_in_micro': u'1536602725764727', 'disclosed_quantity': 0, 'duration': None, 'message': u'Adapter is Not Ready', 'order_type': 'L',
+ 'trigger_price': 0.0, 'instrument': Instrument(exchange=u'NSE_EQ', token=3499, parent_token=None, symbol=u'tatasteel',
+  name=u'TATA STEEL LIMITED', closing_price=619.15, expiry=None, strike_price=None, tick_size=5.0, lot_size=1, instrument_type=u'EQUITY',
+  isin=u'INE081A01012'), 'is_amo': False, 'price': 1.0, 'status': u'rejected', 'product': 'D', 'exchange_order_id': u'',
+  'exchange': u'NSE_EQ', 'order_id': u'180910000207409', 'symbol': u'TATASTEEL', 'parent_order_id': u'NA', 'exchange_time': u'',
+   'average_price': 0.0, 'order_request_id': u'1', 'transaction_type': 'B', 'token': 3499, 'traded_quantity': 0, 'quantity': 1}
+[09/10/2018 23:35:25] [INFO] {u'exchange_order_id': u'', u'disclosed_quantity': 0, u'duration': u'DAY', u'message': u'', u'valid_date': u'',
+ u'order_type': u'L', u'trigger_price': 0, u'is_amo': False, u'price': 1, u'status': u'put order req received', u'product': u'D',
+  u'time_in_micro': u'0', u'exchange': u'NSE_EQ', u'order_id': u'180910000207409', u'symbol': u'TATASTEEL', u'parent_order_id': u'NA',
+   u'exchange_time': u'', u'average_price': 0, u'order_request_id': u'1', u'transaction_type': u'B', u'token': 3499, u'traded_quantity': 0,
+    u'quantity': 1}
+

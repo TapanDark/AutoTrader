@@ -4,14 +4,15 @@ import time
 from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 
-from upstox_api.api import LiveFeedType
+from upstox_api.api import *
 
 from utils.api_helper import UpstoxHelper
 from utils.loom import Loom
 from utils.misc import automatedLogin
 
-MARKET_START = datetime.time(9, 15)
-MARKET_END = datetime.time(15, 30)
+
+# MARKET_START = datetime.time(9, 15)
+# MARKET_END = datetime.time(15, 30)
 
 
 class BaseMarket(object):
@@ -22,8 +23,11 @@ class BaseMarket(object):
         logging.debug("init %s" % self.__class__.__name__)
         self.contracts = contracts
         self.upstoxApi = None
+        self._masterContractsByToken = {}
+        self._symbols = {}
         self._APIConnect()
         self._registerCallBacks()
+        self.upstoxApi.start_websocket(True)
         self._subscribed = []
         self._quoteUpdateCallbacks = defaultdict(list)
         self.traders = {}
@@ -41,7 +45,9 @@ class BaseMarket(object):
             self.upstoxApi.authenticate(UpstoxHelper.getApiSecret(), UpstoxHelper.getRedirectUrl(), automatedLogin)
         self.upstoxApi.connect()
         for contract in self.contracts:
-            self.masterContracts = self.upstoxApi.get_master_contract(contract)
+            self._masterContractsByToken.update(self.upstoxApi.get_master_contract(contract))
+        for token, instrument in self._masterContractsByToken.iteritems():
+            self._symbols[instrument.symbol] = instrument
 
     def _quoteUpdate(self, quote_object):
         logging.debug("Received quote update. RAW:\n%s" % quote_object)
@@ -54,12 +60,12 @@ class BaseMarket(object):
 
     def _tradeUpdate(self, message):
         # TODO: This method is not complete
-        logging.debug("Received trade update. RAW:\n%s" % message)
+        logging.critical("Received trade update. RAW:\n%s" % message)
         # Loom.queueTask(callback,message)
 
     def _orderUpdate(self, message):
         # TODO: This method is not complete
-        logging.debug("Received order update. RAW:\n%s" % message)
+        logging.critical("Received order update. RAW:\n%s" % message)
         # Loom.queueTask(callback,message)
 
     def getInstrument(self, symbol, market='NSE_EQ'):
@@ -105,9 +111,62 @@ class BaseMarket(object):
 
     def startDay(self):
         logging.info("Starting trading day")
-        self.upstoxApi.start_websocket(True)
         while self._isMarketOpen():
             time.sleep(60)
         logging.info("Market has closed. Trading day over")
         for traderId in self.traders:
             self.traders[traderId]['traderObj'].close()
+
+    def placeOrder(self, symbol, quantity, price, transaction="buy", type="limit", product="delivery",
+                   duration="day", trigger=None, stopLoss=None, squareOff=None, trailing=None, disclosed=0):
+        if symbol.lower() not in self._symbols:
+            logging.error("Uknown symbol %s." % symbol)
+            return False
+        if transaction.lower() not in ["buy", "sell"]:
+            logging.error("Only buy/sell orders are supported")
+            return False
+        else:
+            transaction = getattr(TransactionType, transaction.title())
+        if not isinstance(quantity, int):
+            logging.error("Order quantity must be an integer")
+            return False
+        if not isinstance(price, float) and not isinstance(price, int):
+            logging.error("Order price must be a float or int")
+            return False
+        if type.lower() not in ["limit", "market"]:
+            logging.error("Order Type must be Limit or Market")
+            return False
+        else:
+            type = getattr(OrderType, type.title())
+        if product.lower() not in ["delivery", "intraday"]:
+            logging.error("Product must be of type deliver/intraday")
+            return False
+        else:
+            product = getattr(ProductType,product.title())
+        if duration not in ["day", "ioc"]:
+            logging.error("Duration must be day or ioc")
+            return False
+        else:
+            duration = getattr(DurationType, duration.upper())
+        if trigger and not isinstance(trigger, float):
+            logging.error("Trigger price must be a float")
+            return False
+        if stopLoss and not isinstance(stopLoss, float):
+            logging.error("Stoploss must be a float")
+            return False
+        if squareOff and not isinstance(squareOff, float):
+            logging.error("SquareOff must be a float")
+            return False
+        if trailing and not isinstance(trailing, float):
+            logging.error("Trailing must be a float")
+            return False
+        if not isinstance(disclosed, int):
+            logging.error("Disclosed must be an int")
+            return False
+        response = self.upstoxApi.place_order(transaction, self._symbols[symbol.lower()], quantity=quantity,
+                                              order_type=type,
+                                              product_type=product, price=price, trigger_price=trigger,
+                                              disclosed_quantity=disclosed, duration=duration, stop_loss=stopLoss,
+                                              square_off=squareOff, trailing_ticks=trailing)
+        logging.info(response)
+        return response
